@@ -11,9 +11,11 @@ Module['expectedDataFileDownloads']++;
   async function loadPackage(metadata) {
     var PACKAGE_NAME = 'Data.data';
     var NUM_PARTS = 14;
+    var BASE_URL = 'https://cdn.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@main/';
 
     async function fetchPart(partIndex) {
       var partName = `Data.data.part${partIndex}`;
+      var url = BASE_URL + partName;
 
       if (isNode) {
         var contents = require('fs').readFileSync(partName);
@@ -24,9 +26,9 @@ Module['expectedDataFileDownloads']++;
 
       var response;
       try {
-        response = await fetch(partName);
+        response = await fetch(url);
       } catch (e) {
-        throw new Error(`Network Error: ${partName}`, { cause: e });
+        throw new Error(`Network Error: ${url}`, { cause: e });
       }
       if (!response.ok) {
         throw new Error(`${response.status}: ${response.url}`);
@@ -57,7 +59,6 @@ Module['expectedDataFileDownloads']++;
       }
       const parts = await Promise.all(partPromises);
 
-      // Reassemble all parts into one complete Data.data buffer
       const totalSize = parts.reduce((a, p) => a + p.length, 0);
       const assembled = new Uint8Array(totalSize);
       let offset = 0;

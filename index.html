@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Sonic Mania</title>
+    <style type="text/css">
+        html, body {
+            font-family: arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            text-align: center;
+        }
+
+        canvas {
+            height: 100%;
+            margin: auto;
+            padding: 0;
+            border: 0 none;
+            background-color: #000;
+            image-rendering: pixelated;
+        }
+
+        .spinner {
+            height: 30px;
+            width: 30px;
+            margin: 20px auto 0;
+            display: block;
+            border-left: 5px solid rgb(235, 235, 235);
+            border-right: 5px solid rgb(235, 235, 235);
+            border-bottom: 5px solid rgb(235, 235, 235);
+            border-top: 5px solid rgb(120, 120, 120);
+            border-radius: 100%;
+            background-color: rgb(189, 215, 46);
+            animation: rotation 0.8s linear infinite;
+        }
+
+        @keyframes rotation {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        #status {
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: bold;
+            color: rgb(180, 180, 180);
+            line-height: 1.5;
+        }
+
+        #progress {
+            height: 20px;
+            width: 300px;
+            display: block;
+            margin: 10px auto;
+        }
+
+        #output { display: none; }
+    </style>
+</head>
+<body>
+    <div class="spinner" id="spinner"></div>
+    <progress id="progress" value="0" max="100" hidden="hidden"></progress>
+    <div id="status">0%<br></div>
+
+    <canvas id="canvas" width="424" height="240" onclick="window.focus();" oncontextmenu="event.preventDefault();"></canvas>
+    <textarea id="output" rows="8"></textarea>
+
+    <script type="text/javascript">
+        var statusElement = document.getElementById('status');
+        var progressElement = document.getElementById('progress');
+        var spinnerElement = document.getElementById('spinner');
+
+        var Module = {
+            preRun: [function() {
+                FS.mkdir('/saves');
+                FS.mount(IDBFS, {}, '/saves');
+                FS.syncfs(true, function(err) {
+                    if (err) console.log('FS load error:', err);
+                    try {
+                        if (FS.analyzePath('/saves/SaveData.bin').exists) {
+                            var data = FS.readFile('/saves/SaveData.bin');
+                            FS.writeFile('/SaveData.bin', data);
+                            console.log('Save data loaded from IndexedDB');
+                        }
+                    } catch(e) {
+                        console.log('No existing save data found:', e);
+                    }
+                });
+            }],
+            postRun: [function() {
+                spinnerElement.style.display = 'none';
+                statusElement.style.display = 'none';
+                progressElement.style.display = 'none';
+
+                // Sync saves to IndexedDB every 5 seconds
+                setInterval(function() {
+                    try {
+                        var data = FS.readFile('/SaveData.bin');
+                        FS.writeFile('/saves/SaveData.bin', data);
+                    } catch(e) {}
+                    FS.syncfs(false, function(err) {
+                        if (err) console.log('FS save error:', err);
+                    });
+                }, 5000);
+            }],
+            print: function(text) { console.log(text); },
+            printErr: function(text) { console.error(text); },
+            canvas: (function() {
+                var canvas = document.getElementById('canvas');
+                canvas.addEventListener("webglcontextlost", function(e) {
+                    alert('WebGL context lost. Reload the page.');
+                    e.preventDefault();
+                }, false);
+                return canvas;
+            })(),
+			
+			
+            setStatus: function(text) {
+                if (!Module.setStatus.last) Module.setStatus.last = {time: Date.now(), text: ''};
+                if (text === Module.setStatus.last.text) return;
+
+                var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+                var now = Date.now();
+                if (m && now - Module.setStatus.last.time < 30) return;
+
+                Module.setStatus.last.time = now;
+                Module.setStatus.last.text = text;
+
+                if (m) {
+                    var loaded = parseFloat(m[2]);
+                    var total = parseFloat(m[4]);
+                    var percentage = Math.round((loaded / total) * 100);
+
+                    progressElement.value = loaded * 100;
+                    progressElement.max = total * 100;
+                    progressElement.hidden = false;
+
+                    statusElement.innerHTML = percentage + "%<br>";
+                } else {
+                    progressElement.value = null;
+                    progressElement.max = null;
+                    progressElement.hidden = true;
+                    if (!text) {
+                        spinnerElement.style.display = 'none';
+                        statusElement.style.display = 'none';
+                    } else {
+                        statusElement.innerHTML = text + "<br>";
+                    }
+                }
+            },
+            totalDependencies: 0,
+            monitorRunDependencies: function(left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : '');
+            }
+        };
+
+        Module.setStatus('Downloading...');
+
+        window.addEventListener('beforeunload', function() {
+            try {
+                var data = FS.readFile('/SaveData.bin');
+                FS.writeFile('/saves/SaveData.bin', data);
+            } catch(e) {}
+            FS.syncfs(false, function(err) {});
+        });
+		
+		
+    </script>
+    <script src="Data.js"></script>
+    <script async type="text/javascript" src="RSDKv5U.js"></script>
+</body>
+</html>

@@ -7,7 +7,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Sonic Mania</title>
-    <link rel="icon" href="https://cdn.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@main/image_2026-02-26_224423134.png" type="image/png">
+    <link rel="icon" href="https://fastly.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@main/image_2026-02-26_224423134.png" type="image/png">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
 
@@ -42,7 +42,7 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: url('https://cdn.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@main/image_2026-02-26_224632873.png') no-repeat center center;
+            background: url('https://fastly.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@main/image_2026-02-26_224632873.png') no-repeat center center;
             background-size: cover;
             display: flex;
             flex-direction: column;
@@ -211,7 +211,7 @@
         <div class="loading-content">
             <div class="loading-header">
                 <div class="title-group">
-                    <img src="https://cdn.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@main/image_2026-02-26_224423134.png" class="mini-favicon" alt="icon">
+                    <img src="https://fastly.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@main/image_2026-02-26_224423134.png" class="mini-favicon" alt="icon">
                     <div class="loading-title">Sonic Mania ported to the web by Crunch Arcade</div>
                 </div>
                 <div class="loading-mb" id="mb-text">0.0MB of 198.8MB</div>
@@ -353,7 +353,7 @@
                     mbText.textContent = currentMB + 'MB of ' + totalSizeMB.toFixed(1) + 'MB';
 
                     if (percent < 20) loadingText.textContent = "getting jsdlivr stuff";
-                    else if (percent < 60) loadingText.textContent = "downloading game data...";
+                    else if (percent < 60) loadingText.textContent = "downloading game data... hopefully it doesnt get stuck here";
                     else if (percent < 90) loadingText.textContent = "assembling Data.rsdk...";
                     else loadingText.textContent = "almost there...";
 
@@ -388,7 +388,7 @@
             FS.syncfs(false, function(err) {});
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@main/Data.js"></script>
-    <script async type="text/javascript" src="https://cdn.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@refs/heads/main/RSDKv5U.js"></script>
+    <script src="https://fastly.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@main/Data.js"></script>
+    <script async type="text/javascript" src="https://fastly.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@refs/heads/main/RSDKv5U.js"></script>
 </body>
 </html>

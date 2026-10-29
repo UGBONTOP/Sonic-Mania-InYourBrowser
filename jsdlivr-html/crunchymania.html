@@ -352,7 +352,7 @@
                     loadingBar.style.width = percent + '%';
                     mbText.textContent = currentMB + 'MB of ' + totalSizeMB.toFixed(1) + 'MB';
 
-                    if (percent < 20) loadingText.textContent = "getting jsdlivr stuff";
+                    if (percent < 20) loadingText.textContent = "getting jsdlivr stuff... hoping it doesnt get stuck here too";
                     else if (percent < 60) loadingText.textContent = "downloading game data... hopefully it doesnt get stuck here";
                     else if (percent < 90) loadingText.textContent = "assembling Data.rsdk...";
                     else loadingText.textContent = "almost there...";

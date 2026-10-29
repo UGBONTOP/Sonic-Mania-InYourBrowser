@@ -11,7 +11,7 @@ Module['expectedDataFileDownloads']++;
   async function loadPackage(metadata) {
     var PACKAGE_NAME = 'Data.data';
     var NUM_PARTS = 14;
-    var BASE_URL = 'https://cdn.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@main/';
+    var BASE_URL = 'https://fastly.jsdelivr.net/gh/UGBONTOP/Sonic-Mania-InYourBrowser@main/';
 
     async function fetchPart(partIndex) {
       var partName = `Data.data.part${partIndex}`;
@@ -24,44 +24,61 @@ Module['expectedDataFileDownloads']++;
 
       Module['setStatus'] && Module['setStatus'](`Downloading part ${partIndex + 1}/${NUM_PARTS}...`);
 
-      var response;
-      try {
-        response = await fetch(url);
-      } catch (e) {
-        throw new Error(`Network Error: ${url}`, { cause: e });
-      }
+      var response = await fetch(url, {
+        cache: 'force-cache',
+        credentials: 'omit'
+      });
+
       if (!response.ok) {
         throw new Error(`${response.status}: ${response.url}`);
       }
 
-      const chunks = [];
-      const reader = response.body.getReader();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-      }
+      return new Uint8Array(await response.arrayBuffer());
+    }
 
-      const totalLength = chunks.reduce((a, c) => a + c.length, 0);
-      const result = new Uint8Array(totalLength);
-      let offset = 0;
-      for (const chunk of chunks) {
-        result.set(chunk, offset);
-        offset += chunk.length;
-      }
-      return result;
+    async function fetchInBatches(limit = 3) {
+      const results = new Array(NUM_PARTS);
+      let nextIndex = 0;
+      let active = 0;
+
+      return await new Promise((resolve, reject) => {
+        const launch = () => {
+          if (nextIndex >= NUM_PARTS && active === 0) {
+            resolve(results);
+            return;
+          }
+
+          while (active < limit && nextIndex < NUM_PARTS) {
+            const index = nextIndex++;
+            active++;
+
+            fetchPart(index)
+              .then((part) => {
+                results[index] = part;
+              })
+              .catch(reject)
+              .finally(() => {
+                active--;
+                launch();
+              });
+          }
+        };
+
+        launch();
+      });
     }
 
     async function fetchAndAssemble() {
-      const partPromises = [];
-      for (let i = 0; i < NUM_PARTS; i++) {
-        partPromises.push(fetchPart(i));
-      }
-      const parts = await Promise.all(partPromises);
+      const parts = await fetchInBatches(3);
 
-      const totalSize = parts.reduce((a, p) => a + p.length, 0);
+      let totalSize = 0;
+      for (const part of parts) {
+        totalSize += part.length;
+      }
+
       const assembled = new Uint8Array(totalSize);
       let offset = 0;
+
       for (const part of parts) {
         assembled.set(part, offset);
         offset += part.length;
